@@ -18,7 +18,7 @@ func NewHttp() *Http {
 
 func (h *Http) Run(_ context.Context) error {
 	engine := gin.Default()
-	engine.Use(middleware.GinLogger(logger.Request, logger.Response))
+	engine.Use(middleware.Tracing, middleware.GinLogger(logger.Request, logger.Response))
 
 	engine.Handle(http.MethodGet, "/app", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

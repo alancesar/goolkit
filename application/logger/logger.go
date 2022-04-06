@@ -66,7 +66,7 @@ func Response(recorder Recorder, additionalFields ...Field) {
 			"data_length":   recorder.DataLength(),
 			"response_body": body,
 		}).
-		Infof("response sent:    [%v] %v", method, path)
+		Infof("response sent: [%v] %v", method, path)
 }
 
 func getIPAddress(r *http.Request) string {

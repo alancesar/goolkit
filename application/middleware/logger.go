@@ -26,7 +26,7 @@ func GinLogger(req RequestLoggerFn, res ResponseLogger) gin.HandlerFunc {
 
 		requestID := logger.Field{
 			Key:   "request_id",
-			Value: tracing.GetRequestIDFromContext(ctx.Request.Context()),
+			Value: tracing.RetrieveRequestID(ctx.Request.Context()),
 		}
 
 		req(ctx.Request, hostname, requestID)

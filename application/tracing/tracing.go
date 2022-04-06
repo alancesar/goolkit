@@ -2,73 +2,69 @@ package tracing
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
 )
 
-type contextKey string
-
 const (
-	ReqIDHeader                   = "x-request-id"
-	TraceIDHeader                 = "x-b3-traceid"
-	SpanIDHeader                  = "x-b3-spanid"
-	ParentSpanIDHeader            = "x-b3-parentspanid"
-	SampledIDHeader               = "x-b3-sampled"
-	TraceCTXKey        contextKey = "tracing-context"
+	_                      = iota
+	traceCtxKey contextKey = iota
 )
 
-type Tracing struct {
-	RequestID string
-	B3Tracing
-}
+const (
+	ReqIDHeader = "x-request-id"
 
-type B3Tracing struct {
-	TraceID      string
-	SpanID       string
-	ParentSpanID string
-	SampleID     string
-}
+	traceIDHeader      = "x-b3-traceid"
+	spanIDHeader       = "x-b3-spanid"
+	parentSpanIDHeader = "x-b3-parentspanid"
+	sampledIDHeader    = "x-b3-sampled"
+)
 
-func WithTracing(ctx context.Context, tracing Tracing) context.Context {
-	return context.WithValue(ctx, TraceCTXKey, tracing)
-}
+type (
+	contextKey int
 
-func FromContext(ctx context.Context) Tracing {
-	v := ctx.Value(TraceCTXKey)
-	if v == nil {
-		return Tracing{}
+	Data struct {
+		RequestID string
+		B3Tracing
 	}
-	return v.(Tracing)
-}
 
-func Context() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Request = BindRequestContext(c.Request)
-		c.Next()
+	B3Tracing struct {
+		TraceID      string
+		SpanID       string
+		ParentSpanID string
+		SampleID     string
 	}
-}
+)
 
-func BindRequestContext(r *http.Request) *http.Request {
+func CreateContext(r *http.Request) context.Context {
 	var requestID = r.Header.Get(ReqIDHeader)
 	if requestID == "" {
 		requestID = uuid.New().String()
 	}
 
-	t := Tracing{
+	data := Data{
 		RequestID: requestID,
 		B3Tracing: B3Tracing{
-			TraceID:      r.Header.Get(TraceIDHeader),
-			SpanID:       r.Header.Get(SpanIDHeader),
-			ParentSpanID: r.Header.Get(ParentSpanIDHeader),
-			SampleID:     r.Header.Get(SampledIDHeader),
+			TraceID:      r.Header.Get(traceIDHeader),
+			SpanID:       r.Header.Get(spanIDHeader),
+			ParentSpanID: r.Header.Get(parentSpanIDHeader),
+			SampleID:     r.Header.Get(sampledIDHeader),
 		},
 	}
-	return r.WithContext(WithTracing(r.Context(), t))
+
+	return context.WithValue(r.Context(), traceCtxKey, data)
 }
 
-func GetRequestIDFromContext(ctx context.Context) string {
-	if trace, ok := ctx.Value(TraceCTXKey).(Tracing); !ok {
+func RetrieveData(ctx context.Context) Data {
+	if value := ctx.Value(traceCtxKey); value == nil {
+		return Data{}
+	} else {
+		return value.(Data)
+	}
+}
+
+func RetrieveRequestID(ctx context.Context) string {
+	if trace, ok := ctx.Value(traceCtxKey).(Data); !ok {
 		return ""
 	} else {
 		return trace.RequestID
