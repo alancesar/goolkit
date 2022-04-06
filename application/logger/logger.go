@@ -28,7 +28,7 @@ type (
 	}
 )
 
-func Request(r *http.Request, additionalFields ...Field) {
+func HTTPRequest(r *http.Request, additionalFields ...Field) {
 	path := r.URL.Path
 	method := r.Method
 
@@ -47,10 +47,10 @@ func Request(r *http.Request, additionalFields ...Field) {
 			"user_agent":   r.UserAgent(),
 			"request_body": body,
 		}).
-		Infof("request received: [%v] %v", method, path)
+		Infof("request received: [%s] %s", method, path)
 }
 
-func Response(recorder Recorder, additionalFields ...Field) {
+func HTTPResponse(recorder Recorder, additionalFields ...Field) {
 	body := map[string]interface{}{}
 	if isJSON(recorder.Header()) {
 		body = parseBodyToMap(recorder.Body())
@@ -66,7 +66,7 @@ func Response(recorder Recorder, additionalFields ...Field) {
 			"data_length":   recorder.DataLength(),
 			"response_body": body,
 		}).
-		Infof("response sent: [%v] %v", method, path)
+		Infof("response sent: [%s] %s", method, path)
 }
 
 func getIPAddress(r *http.Request) string {
@@ -75,12 +75,11 @@ func getIPAddress(r *http.Request) string {
 		return ""
 	}
 
-	remoteIP := net.ParseIP(ip)
-	if remoteIP == nil {
+	if remoteIP := net.ParseIP(ip); remoteIP == nil {
 		return ""
+	} else {
+		return remoteIP.String()
 	}
-
-	return remoteIP.String()
 }
 
 func buildLoggerField(additionalFields []Field) logrus.Fields {
