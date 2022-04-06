@@ -11,11 +11,11 @@ import (
 )
 
 type (
-	RequestLoggerFn func(r *http.Request, additionalFields ...logger.Field)
-	ResponseLogger  func(recorder logger.Recorder, additionalFields ...logger.Field)
+	RequestLoggerFn  func(r *http.Request, additionalFields ...logger.Field)
+	ResponseLoggerFn func(recorder logger.Recorder, additionalFields ...logger.Field)
 )
 
-func GinLogger(req RequestLoggerFn, res ResponseLogger) gin.HandlerFunc {
+func GinLogger(req RequestLoggerFn, res ResponseLoggerFn) gin.HandlerFunc {
 	hostname := logger.Field{
 		Key:   "hostname",
 		Value: getHostname(),
