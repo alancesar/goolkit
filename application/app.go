@@ -7,6 +7,7 @@ import (
 	"log"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 type Application struct {
@@ -38,9 +39,14 @@ func (a Application) Start(ctx context.Context) {
 
 	fmt.Println("shutting down...")
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	for _, s := range a.runners {
 		if err := s.Stop(ctx); err != nil {
-			log.Println(err)
+			log.Println("banco", err)
 		}
 	}
+
+	fmt.Println("good bye")
 }
