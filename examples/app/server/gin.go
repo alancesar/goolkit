@@ -36,13 +36,13 @@ func (h *Http) Run(_ context.Context) error {
 		Handler: engine,
 	}
 
-	return h.server.ListenAndServe()
-}
-
-func (h Http) Stop(ctx context.Context) error {
-	if err := h.server.Shutdown(ctx); err != http.ErrServerClosed {
+	if err := h.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}
 
 	return nil
+}
+
+func (h Http) Stop(ctx context.Context) error {
+	return h.Shutdown(ctx)
 }
