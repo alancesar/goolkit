@@ -10,12 +10,12 @@ import (
 )
 
 type Application struct {
-	servers []runner.Runner
+	runners []runner.Runner
 }
 
 func New(servers ...runner.Runner) *Application {
 	return &Application{
-		servers: servers,
+		runners: servers,
 	}
 }
 
@@ -23,7 +23,7 @@ func (a Application) Start(ctx context.Context) {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	for _, s := range a.servers {
+	for _, s := range a.runners {
 		go func(s runner.Runner) {
 			if err := s.Run(ctx); err != nil {
 				log.Fatalln(err)
@@ -38,7 +38,7 @@ func (a Application) Start(ctx context.Context) {
 
 	fmt.Println("shutting down...")
 
-	for _, s := range a.servers {
+	for _, s := range a.runners {
 		if err := s.Stop(ctx); err != nil {
 			log.Println(err)
 		}
