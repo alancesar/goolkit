@@ -20,7 +20,7 @@ type Service interface {
 
 func main() {
 	observer := NewMyObserver("to_date")
-	proxy := observability.NewProxy[string, time.Time](observer)
+	proxy := observability.NewProxy[time.Time](observer)
 	myService := service.NewMyProxyService(service.NewMyService(), proxy)
 
 	engine := buildGinEngine(myService)
@@ -47,10 +47,24 @@ func buildGinEngine(s Service) *gin.Engine {
 		})
 	})
 	engine.Handle(http.MethodPost, "/time", func(c *gin.Context) {
-		_, _ = s.ToTime(c.Request.Context(), "2020-01-05")
+		t := c.Query("time")
+		if t == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "time must be provided",
+			})
+			return
+		}
+
+		output, err := s.ToTime(c.Request.Context(), t)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"message": "data received successfully",
+			"message": output.String(),
 		})
 	})
 

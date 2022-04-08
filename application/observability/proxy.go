@@ -6,33 +6,33 @@ import (
 )
 
 type (
-	Runner[Req, Res any] func(ctx context.Context, req Req) (Res, error)
+	Runner[T any] func() (T, error)
 
-	Proxy[Req, Res any] struct {
-		observer Observer[Req, Res]
+	Proxy[T any] struct {
+		observer Observer
 	}
 )
 
-func NewProxy[Req, Res any](observer Observer[Req, Res]) Proxy[Req, Res] {
-	return Proxy[Req, Res]{
+func NewProxy[T any](observer Observer) Proxy[T] {
+	return Proxy[T]{
 		observer: observer,
 	}
 }
 
-func (p Proxy[Req, Res]) Run(ctx context.Context, req Req, runner Runner[Req, Res]) (res Res, err error) {
+func (p Proxy[T]) Run(ctx context.Context, runner Runner[T]) (t T, err error) {
 	start := time.Now()
-	p.observer.Start(ctx, req)
+	p.observer.Start(ctx)
 
 	defer func() {
 		duration := time.Since(start)
 		p.observer.Finish(ctx, duration)
 	}()
 
-	if res, err = runner(ctx, req); err != nil {
+	if t, err = runner(); err != nil {
 		p.observer.Error(ctx, err)
-		return res, err
+		return t, err
 	}
 
-	p.observer.Success(ctx, res)
-	return res, nil
+	p.observer.Success(ctx, t)
+	return t, nil
 }

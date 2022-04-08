@@ -24,7 +24,7 @@ type (
 
 	Field struct {
 		Key   string
-		Value interface{}
+		Value any
 	}
 )
 
@@ -32,7 +32,7 @@ func HTTPRequest(r *http.Request, additionalFields ...Field) {
 	path := r.URL.Path
 	method := r.Method
 
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	if isJSON(r.Header) {
 		body = parseBodyToMap(r.Body)
 	}
@@ -51,7 +51,7 @@ func HTTPRequest(r *http.Request, additionalFields ...Field) {
 }
 
 func HTTPResponse(recorder Recorder, additionalFields ...Field) {
-	body := map[string]interface{}{}
+	body := map[string]any{}
 	if isJSON(recorder.Header()) {
 		body = parseBodyToMap(recorder.Body())
 	}
@@ -90,8 +90,8 @@ func buildLoggerField(additionalFields []Field) logrus.Fields {
 	return fields
 }
 
-func parseBodyToMap(r io.Reader) map[string]interface{} {
-	var raw map[string]interface{}
+func parseBodyToMap(r io.Reader) map[string]any {
+	var raw map[string]any
 	_ = json.NewDecoder(r).Decode(&raw)
 	return raw
 }
